@@ -51,6 +51,10 @@
   border-radius: 30px;
 }
 
+.uc{
+  overflow: scroll;
+}
+
 h1{
   color: #3de413;
 }
@@ -72,4 +76,15 @@ h1{
 .btn{
   color: #13c8e4;
   background-color: #f7f7f7;
+}
+
+.user{
+  display: flex;
+  justify-content: flex-end;
+}
+
+
+.chat{
+  display: flex;
+  justify-content: flex-start;
 }
