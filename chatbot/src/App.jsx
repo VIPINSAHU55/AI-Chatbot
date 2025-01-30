@@ -1,11 +1,20 @@
 
 import { useState, useEffect } from 'react';
+import { ThreeDots } from 'react-loader-spinner'
 import './App.css';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 function App() {
 
+  // store data use state hook
+  // destructuring the useState into prompt and setPrompt
+  // prompt is the input from the user
+  // setPrompt is the function that used to update the prompt
   const [prompt, setPrompt] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // store the response from the user and show on screen using useState
+  // array of object is used to store the prompt and response
   const [response, setResponse] = useState([
     {
       prompt: "Hi, how can I help you today?",
@@ -15,23 +24,38 @@ function App() {
 
   const apikey = import.meta.env.VITE_API_GEMINI_KEY;
 
-  useEffect(() => {
-    const genAI = new GoogleGenerativeAI(apikey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-  }, [apikey]);
+
+
 
   async function aiResponse() {
-    if (!prompt.trim()) return;
+    setLoading(true);
+    // create an instance of the GoogleGenerativeAI
     const genAI = new GoogleGenerativeAI(apikey);
+    // we have selected the model "gemini-1.5-flash"
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    try {
-      const result = await model.generateContent(prompt);
-      setResponse([...response, { prompt, response: result.response.text() }]);
-      setPrompt('');
-    } catch (error) {
-      console.error(error);
-    }
+
+    // we have given the prompt to the model and it will generate the response
+    const result = await model.generateContent(prompt);
+    // we will get the response from the model
+    // console.log(result.response.text());
+    // ... spread operator is used to copy the previous response and add the new response
+    const newResponse = [
+      ...response,
+      { prompt: prompt, response: result.response.text() },
+    ]
+    setResponse(newResponse);
+    setPrompt("");
+    setLoading(false);
+    // save the response in the local storage
+    localStorage.setItem('chatbotResponse', JSON.stringify(newResponse));
   }
+
+  useEffect(() => {
+    const data = localStorage.getItem('chatbotResponse');
+    if (data) {
+      setResponse(JSON.parse(data));
+    }
+  }, []);
 
   return (
     <>
@@ -48,7 +72,20 @@ function App() {
               </p>
             </div>
           ))}
+          {loading && (
+            <ThreeDots
+              visible={true}
+              height="80"
+              width="80"
+              color="#4fa94d"
+              radius="9"
+              ariaLabel="three-dots-loading"
+              wrapperStyle={{}}
+              wrapperClass=""
+            />
+          )}
         </div>
+
         <div className='box'>
           <input
             type='text'
@@ -57,7 +94,7 @@ function App() {
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
           />
-          <button className='btn' onClick={aiResponse}>SUBMIT</button>
+          <button className='btn' onClick={aiResponse} disabled={loading}>SUBMIT</button>
           <div className='response'></div>
         </div>
       </div>
